@@ -1,5 +1,12 @@
+import os
+
+from dotenv import load_dotenv
 import requests
 import streamlit as st
+
+# Load variables from frontend/.env (if present) into os.environ.
+# Values already set in the environment take precedence.
+load_dotenv()
 
 # ── Page config ────────────────────────────────────────────────────────────────
 
@@ -10,8 +17,10 @@ st.set_page_config(
 )
 
 # ── API config ─────────────────────────────────────────────────────────────────
+# Override the default URL by setting the API_URL environment variable,
+# e.g. export API_URL=http://myserver:8000 before running Streamlit.
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.environ.get("API_URL", "http://127.0.0.1:8000")
 
 
 def check_api_health() -> bool:
@@ -47,16 +56,35 @@ if check_api_health():
     st.success("API is online", icon="✅")
 else:
     st.error(
-        "Cannot reach the API at http://127.0.0.1:8000. "
+        f"Cannot reach the API at {API_URL}. "
         "Make sure the FastAPI server is running with `uvicorn app:app --reload`.",
         icon="🔴",
     )
 
 st.divider()
 
-# Input
+# ── Example text ───────────────────────────────────────────────────────────────
+
+EXAMPLE_TEXT = (
+    "The tower is 324 metres (1,063 ft) tall, about the same height as an 81-storey building, "
+    "and the tallest structure in Paris. Its base is square, measuring 125 metres (410 ft) on each side. "
+    "During its construction, the Eiffel Tower surpassed the Washington Monument to become the tallest "
+    "man-made structure in the world, a title it held for 41 years until the Chrysler Building in New York "
+    "City was finished in 1930. It was the first structure to reach a height of 300 metres. Due to the "
+    "addition of a broadcasting aerial at the top of the tower in 1957, it is now taller than the "
+    "Chrysler Building by 5.2 metres (17 ft). Excluding transmitters, the Eiffel Tower is the second "
+    "tallest free-standing structure in France after the Millau Viaduct."
+)
+
+# ── Input ──────────────────────────────────────────────────────────────────────
+# Read any pre-loaded example from session state so the widget renders with it.
+# Using pop() clears the flag in the same pass, avoiding a second rerun.
+
+default_text = st.session_state.pop("example_loaded", "")
+
 text_input = st.text_area(
     "Paste your text here",
+    value=default_text,
     height=250,
     placeholder="Enter at least 50 characters...",
 )
@@ -102,22 +130,8 @@ if st.button("Summarize", type="primary", use_container_width=True):
 
 # Example
 with st.expander("Try an example"):
-    example = (
-        "The tower is 324 metres (1,063 ft) tall, about the same height as an 81-storey building, "
-        "and the tallest structure in Paris. Its base is square, measuring 125 metres (410 ft) on each side. "
-        "During its construction, the Eiffel Tower surpassed the Washington Monument to become the tallest "
-        "man-made structure in the world, a title it held for 41 years until the Chrysler Building in New York "
-        "City was finished in 1930. It was the first structure to reach a height of 300 metres. Due to the "
-        "addition of a broadcasting aerial at the top of the tower in 1957, it is now taller than the "
-        "Chrysler Building by 5.2 metres (17 ft). Excluding transmitters, the Eiffel Tower is the second "
-        "tallest free-standing structure in France after the Millau Viaduct."
-    )
-    st.write(example)
+    st.write(EXAMPLE_TEXT)
     if st.button("Load this example"):
-        st.session_state["example_loaded"] = example
+        # Store the text so the text_area picks it up via value= on next render.
+        st.session_state["example_loaded"] = EXAMPLE_TEXT
         st.rerun()
-
-# Load example into text area via session state
-if "example_loaded" in st.session_state:
-    text_input = st.session_state.pop("example_loaded")
-    st.rerun()

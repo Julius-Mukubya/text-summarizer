@@ -1,5 +1,9 @@
-fastapi>=0.111.0
-uvicorn>=0.30.0
+fastapi>=0.111.0,<1.0.0
+uvicorn>=0.30.0,<1.0.0
 transformers>=4.44.2,<5.0.0
-torch>=2.9.0
-sentencepiece>=0.2.0
+# CPU-only PyTorch — avoids the ~2 GB CUDA download.
+# Remove the --index-url line and change the version spec if you need GPU support.
+--index-url https://download.pytorch.org/whl/cpu
+torch>=2.9.0,<3.0.0
+sentencepiece>=0.2.0,<1.0.0
+python-dotenv>=1.0.0,<2.0.0

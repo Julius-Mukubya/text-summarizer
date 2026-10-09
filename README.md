@@ -32,6 +32,18 @@ source venv/bin/activate         # Mac/Linux
 pip install -r backend/requirements.txt
 ```
 
+> **PyTorch install note** — `backend/requirements.txt` includes
+> `--index-url https://download.pytorch.org/whl/cpu` so pip downloads the
+> CPU-only PyTorch wheel (~250 MB) instead of the full CUDA build (~2 GB).
+> If you need GPU support, remove that line and adjust the version specifier
+> to match your CUDA version.
+
+> **First-run download** — On the first startup the Hugging Face `transformers`
+> library will download the model weights (~1.2 GB) to
+> `~/.cache/huggingface/hub/`. Subsequent startups load from the local cache
+> and are much faster. Make sure you have enough disk space and a stable
+> internet connection for the first run.
+
 ### Running
 
 ```bash
@@ -40,6 +52,20 @@ uvicorn backend.app:app --reload
 
 API runs at `http://127.0.0.1:8000`.
 Interactive docs at `http://127.0.0.1:8000/docs`.
+
+### Configuration
+
+Copy the example env file and edit as needed:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+| Variable | Default | Description |
+|---|---|---|
+| `CORS_ORIGINS` | `http://localhost:8501` | Comma-separated list of origins allowed to call the API |
+
+`backend/.env` is loaded automatically on startup via `python-dotenv`. Any variable already set in the shell environment takes precedence over the file.
 
 ### Endpoints
 
@@ -64,9 +90,13 @@ Summarize a piece of text.
 
 | Field | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `text` | string | Yes | — | Text to summarize (min 50 chars) |
+| `text` | string | Yes | — | Text to summarize (50–4 000 chars) |
 | `min_length` | integer | No | 30 | Minimum summary length in tokens (10–100) |
 | `max_length` | integer | No | 130 | Maximum summary length in tokens (50–300) |
+
+> The 4 000-character cap on `text` maps to BART's ~1 024-token context window.
+> Inputs beyond this limit would be silently truncated by the model, so the API
+> rejects them with a 422 error instead.
 
 **Response**
 ```json
@@ -99,6 +129,20 @@ streamlit run frontend/streamlit_app.py
 ```
 
 The interface opens automatically in your browser at `http://localhost:8501`.
+
+### Configuration
+
+Copy the example env file and edit as needed:
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+| Variable | Default | Description |
+|---|---|---|
+| `API_URL` | `http://127.0.0.1:8000` | Base URL of the FastAPI backend |
+
+`frontend/.env` is loaded automatically on startup via `python-dotenv`. Any variable already set in the shell environment takes precedence over the file.
 
 ### Features
 - API health indicator — shows whether the backend is reachable
