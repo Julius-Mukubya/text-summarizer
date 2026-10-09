@@ -8,12 +8,14 @@ The project is split into two parts:
 
 ```
 text-summarizer/
-├── app.py                      # FastAPI backend
-├── requirements.txt            # Backend dependencies
+├── backend/
+│   ├── app.py                  # FastAPI backend
+│   └── requirements.txt        # Backend dependencies
 ├── frontend/
 │   ├── streamlit_app.py        # Streamlit frontend
 │   └── requirements.txt        # Frontend dependencies
-└── .gitignore
+├── .gitignore
+└── README.md
 ```
 
 ---
@@ -27,13 +29,13 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1     # Windows
 source venv/bin/activate         # Mac/Linux
 
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
 ### Running
 
 ```bash
-uvicorn app:app --reload
+uvicorn backend.app:app --reload
 ```
 
 API runs at `http://127.0.0.1:8000`.
